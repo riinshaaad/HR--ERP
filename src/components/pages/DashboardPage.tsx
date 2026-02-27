@@ -1,4 +1,5 @@
 "use client";
+import React, { useState, useMemo } from "react";
 import { employees, leaveRequests, performanceRecords, teamKPIs, performanceTrend, departmentPerformance, formatCurrency } from "@/lib/data";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -27,18 +28,39 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return null;
 };
 
-export default function DashboardPage() {
+interface DashboardProps {
+    onNavigate?: (page: string) => void;
+}
+
+export default function DashboardPage({ onNavigate }: DashboardProps = {}) {
+    const [selectedDept, setSelectedDept] = useState("All");
+    const departments = ["All", "Engineering", "Design", "Marketing", "Sales", "HR", "Finance"];
+
+    const trendData = useMemo(() => {
+        if (selectedDept === "All") return performanceTrend;
+        const deptScore = departmentPerformance.find(d => d.department === selectedDept)?.score || 86;
+        return performanceTrend.map(t => ({
+            ...t,
+            score: Math.round(t.score * (deptScore / 86))
+        }));
+    }, [selectedDept]);
+
     return (
         <div className="fade-in">
             {/* Stats */}
             <div className="stats-grid">
                 {[
-                    { label: "Total Employees", value: employees.length, icon: "👥", delta: "+2 this month", up: true, color: "#6366f1" },
-                    { label: "Active Today", value: totalHeadcount, icon: "✅", delta: `${onLeave} on leave`, up: true, color: "#10b981" },
-                    { label: "Pending Leaves", value: pendingLeaves, icon: "📅", delta: "Needs approval", up: false, color: "#f59e0b" },
-                    { label: "Avg Performance", value: `${avgScore}`, icon: "📈", delta: "+3pts this quarter", up: true, color: "#3b82f6" },
+                    { id: "employees", label: "Total Employees", value: employees.length, icon: "👥", delta: "+2 this month", up: true, color: "#6366f1" },
+                    { id: "employees", label: "Active Today", value: totalHeadcount, icon: "✅", delta: `${onLeave} on leave`, up: true, color: "#10b981" },
+                    { id: "leave", label: "Pending Leaves", value: pendingLeaves, icon: "📅", delta: "Needs approval", up: false, color: "#f59e0b" },
+                    { id: "performance", label: "Avg Performance", value: `${avgScore}`, icon: "📈", delta: "+3pts this quarter", up: true, color: "#3b82f6" },
                 ].map((stat) => (
-                    <div key={stat.label} className="stat-card">
+                    <div
+                        key={stat.label}
+                        className="stat-card"
+                        onClick={() => onNavigate && stat.id ? onNavigate(stat.id) : null}
+                        style={{ cursor: onNavigate && stat.id ? "pointer" : "default" }}
+                    >
                         <div className="stat-icon" style={{ background: `${stat.color}18` }}>
                             <span>{stat.icon}</span>
                         </div>
@@ -53,14 +75,30 @@ export default function DashboardPage() {
             <div className="grid-2" style={{ marginBottom: 24 }}>
                 {/* Performance Trend */}
                 <div className="card">
-                    <div className="card-header">
+                    <div className="card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
                         <div>
                             <div className="card-title">Performance Trend</div>
                             <div className="card-subtitle">Average score over 6 months</div>
                         </div>
+                        <select
+                            style={{
+                                background: "var(--bg-elevated)",
+                                border: "1px solid var(--border-default)",
+                                color: "var(--text-primary)",
+                                borderRadius: "var(--radius-sm)",
+                                padding: "6px 10px",
+                                fontSize: 13,
+                                outline: "none",
+                                cursor: "pointer"
+                            }}
+                            value={selectedDept}
+                            onChange={(e) => setSelectedDept(e.target.value)}
+                        >
+                            {departments.map(d => <option key={d} value={d}>{d === "All" ? "All Departments" : d}</option>)}
+                        </select>
                     </div>
                     <ResponsiveContainer width="100%" height={180}>
-                        <AreaChart data={performanceTrend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                        <AreaChart data={trendData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="perfGrad" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />

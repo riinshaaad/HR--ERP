@@ -23,6 +23,19 @@ export interface Employee {
   bio: string;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  client: string;
+  description: string;
+  status: "Active" | "Completed" | "On Hold" | "At Risk";
+  progress: number;
+  startDate: string;
+  endDate: string;
+  budget: number;
+  teamIds: string[];
+}
+
 export interface LeaveRequest {
   id: string;
   employeeId: string;
@@ -92,8 +105,8 @@ export interface KPI {
 export const employees: Employee[] = [
   {
     id: "emp-001",
-    name: "Sarah Chen",
-    email: "sarah.chen@hrx.com",
+    name: "Mohammed Rinshad",
+    email: "mohammed.rinshad@hrx.com",
     phone: "+1 415-555-0101",
     role: "HR Admin",
     department: "HR",
@@ -101,7 +114,7 @@ export const employees: Employee[] = [
     managerId: null,
     startDate: "2019-03-15",
     salary: 120000,
-    avatar: "SC",
+    avatar: "MR",
     status: "Active",
     skills: ["Talent Acquisition", "Compliance", "HRIS", "Employee Relations"],
     bio: "10+ years in HR, passionate about building great workplaces.",
@@ -436,6 +449,71 @@ export const departmentPerformance = [
   { department: "Design", score: 88 },
   { department: "Marketing", score: 75 },
   { department: "HR", score: 89 },
+];
+
+// ─── Mock Projects ────────────────────────────────────────────────────────────
+
+export const projects: Project[] = [
+  {
+    id: "proj-001",
+    name: "ERP System Overhaul",
+    client: "Internal IT",
+    description: "Upgrading the core ERP modules to the latest React versions and optimizing the backend connections.",
+    status: "Active",
+    progress: 45,
+    startDate: "2026-01-10",
+    endDate: "2026-06-30",
+    budget: 150000,
+    teamIds: ["emp-002", "emp-003", "emp-004"],
+  },
+  {
+    id: "proj-002",
+    name: "Acme Corp Rebranding",
+    client: "Acme Corp",
+    description: "Complete redesign of the Acme Corp website and brand marketing materials.",
+    status: "Completed",
+    progress: 100,
+    startDate: "2025-09-01",
+    endDate: "2025-12-15",
+    budget: 85000,
+    teamIds: ["emp-005", "emp-006", "emp-004"],
+  },
+  {
+    id: "proj-003",
+    name: "Mobile App V2.0",
+    client: "Global Tech",
+    description: "Developing the next iteration of the Global Tech mobile experience with offline capabilities.",
+    status: "At Risk",
+    progress: 65,
+    startDate: "2025-11-01",
+    endDate: "2026-03-15",
+    budget: 200000,
+    teamIds: ["emp-002", "emp-003"],
+  },
+  {
+    id: "proj-004",
+    name: "Q1 Sales Campaign",
+    client: "Internal Marketing",
+    description: "Aggressive sales push targeting enterprise customers in the financial sector.",
+    status: "Active",
+    progress: 80,
+    startDate: "2026-01-01",
+    endDate: "2026-03-31",
+    budget: 50000,
+    teamIds: ["emp-005", "emp-008", "emp-001"],
+  },
+  {
+    id: "proj-005",
+    name: "Q4 Financial Audit",
+    client: "Internal Finance",
+    description: "End of year financial review and reporting for stakeholders.",
+    status: "Completed",
+    progress: 100,
+    startDate: "2025-12-01",
+    endDate: "2026-01-31",
+    budget: 30000,
+    teamIds: ["emp-007", "emp-001"],
+  },
 ];
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────

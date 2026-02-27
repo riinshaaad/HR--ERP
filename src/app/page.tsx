@@ -9,6 +9,8 @@ import PayrollPage from "@/components/pages/PayrollPage";
 import PerformancePage from "@/components/pages/PerformancePage";
 import ReportsPage from "@/components/pages/ReportsPage";
 import SettingsPage from "@/components/pages/SettingsPage";
+import OffboardingPage from "@/components/pages/OffboardingPage";
+import ProjectsPage from "@/components/pages/ProjectsPage";
 
 const ACTION_MAP: Record<string, { label: string } | undefined> = {
   employees: { label: "Add Employee" },
@@ -20,13 +22,15 @@ export default function Home() {
 
   const renderPage = () => {
     switch (page) {
-      case "dashboard": return <DashboardPage />;
+      case "dashboard": return <DashboardPage onNavigate={setPage} />;
       case "employees": return <EmployeesPage />;
       case "leave": return <LeavePage />;
       case "payroll": return <PayrollPage />;
       case "performance": return <PerformancePage />;
       case "reports": return <ReportsPage />;
       case "settings": return <SettingsPage />;
+      case "offboarding": return <OffboardingPage />;
+      case "projects": return <ProjectsPage />;
       default: return <DashboardPage />;
     }
   };

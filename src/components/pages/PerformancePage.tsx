@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useNotifications } from "@/contexts/NotificationContext";
 import {
     employees, performanceRecords, teamKPIs, performanceTrend, departmentPerformance,
     getEmployee, ratingColor, PerformanceRating, PerformanceRecord
@@ -102,7 +103,10 @@ function ReviewModal({ record, onClose }: { record: PerformanceRecord; onClose: 
     );
 }
 
-function AddGoalModal({ onClose }: { onClose: () => void }) {
+function AddGoalModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (title: string, empName: string) => void }) {
+    const [title, setTitle] = useState("");
+    const [empId, setEmpId] = useState(employees[0].id);
+
     return (
         <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
             <div className="modal">
@@ -113,13 +117,13 @@ function AddGoalModal({ onClose }: { onClose: () => void }) {
                 <div className="modal-body">
                     <div className="form-group">
                         <label>Employee</label>
-                        <select>
-                            {employees.map(e => <option key={e.id}>{e.name}</option>)}
+                        <select value={empId} onChange={e => setEmpId(e.target.value)}>
+                            {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                         </select>
                     </div>
                     <div className="form-group">
                         <label>Goal Title</label>
-                        <input placeholder="e.g. Increase API Response Speed" />
+                        <input placeholder="e.g. Increase API Response Speed" value={title} onChange={e => setTitle(e.target.value)} />
                     </div>
                     <div className="form-group">
                         <label>Description</label>
@@ -138,7 +142,11 @@ function AddGoalModal({ onClose }: { onClose: () => void }) {
                 </div>
                 <div className="modal-footer">
                     <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-                    <button className="btn btn-primary" onClick={onClose}>Create Goal</button>
+                    <button className="btn btn-primary" onClick={() => {
+                        const empName = employees.find(e => e.id === empId)?.name || "Employee";
+                        onSubmit(title, empName);
+                        onClose();
+                    }}>Create Goal</button>
                 </div>
             </div>
         </div>
@@ -162,6 +170,7 @@ export default function PerformancePage() {
     const [selectedReview, setSelectedReview] = useState<PerformanceRecord | null>(null);
     const [addingGoal, setAddingGoal] = useState(false);
     const [selectedPeriod, setSelectedPeriod] = useState("Q4 2025");
+    const { addNotification } = useNotifications();
 
     const filtered = performanceRecords.filter(r => selectedPeriod === "All" || r.period === selectedPeriod);
     const topPerformers = [...performanceRecords].sort((a, b) => b.kpiScore - a.kpiScore).slice(0, 3);
@@ -455,7 +464,9 @@ export default function PerformancePage() {
             )}
 
             {selectedReview && <ReviewModal record={selectedReview} onClose={() => setSelectedReview(null)} />}
-            {addingGoal && <AddGoalModal onClose={() => setAddingGoal(false)} />}
+            {addingGoal && <AddGoalModal onClose={() => setAddingGoal(false)} onSubmit={(title, empName) => {
+                addNotification(`New goal "${title || "Untitled"}" set for ${empName}`);
+            }} />}
         </div>
     );
 }

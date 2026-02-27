@@ -11,6 +11,7 @@ const NAV = [
         section: "Overview",
         items: [
             { id: "dashboard", label: "Dashboard", icon: "▦" },
+            { id: "projects", label: "Projects", icon: "📋" },
         ],
     },
     {
@@ -30,6 +31,7 @@ const NAV = [
     {
         section: "Admin",
         items: [
+            { id: "offboarding", label: "Offboarding", icon: "🚪" },
             { id: "reports", label: "Reports", icon: "▤" },
             { id: "settings", label: "Settings", icon: "⊕" },
         ],

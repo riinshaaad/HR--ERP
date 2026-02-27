@@ -117,7 +117,10 @@ export default function PayrollPage() {
                     <option value="all">All Months</option>
                     {months.map(m => <option key={m}>{m}</option>)}
                 </select>
-                <button className="btn btn-primary" style={{ marginLeft: "auto" }}>Run Payroll</button>
+                <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+                    <button className="btn btn-secondary">Flexible Structures</button>
+                    <button className="btn btn-primary">Automated Payroll Run</button>
+                </div>
             </div>
 
             {/* Table */}

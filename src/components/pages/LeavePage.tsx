@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { employees, leaveRequests as initialLeaves, leaveBalances, LeaveRequest, LeaveType, getEmployee } from "@/lib/data";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 const LEAVE_TYPES: LeaveType[] = ["Annual", "Sick", "Maternity", "Paternity", "Unpaid", "Compassionate"];
 
@@ -139,6 +140,7 @@ export default function LeavePage() {
     const [applying, setApplying] = useState(false);
     const [activeTab, setActiveTab] = useState("all");
     const [selectedEmployee, setSelectedEmployee] = useState("all");
+    const { addNotification } = useNotifications();
 
     const me = employees[0];
     const myBalance = leaveBalances.find(lb => lb.employeeId === me.id)!;
@@ -157,6 +159,7 @@ export default function LeavePage() {
             appliedDate: new Date().toISOString().split("T")[0],
         };
         setLeaves(prev => [newReq, ...prev]);
+        addNotification(`New ${newReq.type} leave requested by ${me.name} (${newReq.days} day${newReq.days !== 1 ? 's' : ''})`);
     };
 
     const handleApprove = (id: string) => setLeaves(prev => prev.map(l => l.id === id ? { ...l, status: "Approved" } : l));
