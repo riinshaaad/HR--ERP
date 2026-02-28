@@ -64,9 +64,9 @@ function ApplyLeaveModal({ onClose, onSubmit }: { onClose: () => void; onSubmit:
 }
 
 function LeaveCalendar({ leaves }: { leaves: LeaveRequest[] }) {
-    const now = new Date(2026, 1, 1); // Feb 2026
-    const year = now.getFullYear();
-    const month = now.getMonth();
+    const [currentDate, setCurrentDate] = useState(() => new Date());
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const firstDay = new Date(year, month, 1).getDay();
 
@@ -87,10 +87,23 @@ function LeaveCalendar({ leaves }: { leaves: LeaveRequest[] }) {
     for (let i = 0; i < firstDay; i++) days.push(null);
     for (let i = 1; i <= daysInMonth; i++) days.push(i);
 
+    const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+    const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+    const monthName = currentDate.toLocaleString('default', { month: 'long' });
+
+    const today = new Date();
+    const isToday = (d: number) =>
+        today.getDate() === d && today.getMonth() === month && today.getFullYear() === year;
+
     return (
         <div className="card">
-            <div className="card-header">
-                <div className="card-title">Leave Calendar — February 2026</div>
+            <div className="card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <div className="card-title">Leave Calendar</div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <button className="btn btn-ghost btn-icon btn-sm" onClick={prevMonth}>←</button>
+                    <span style={{ fontSize: 13, fontWeight: 600, minWidth: 100, textAlign: "center" }}>{monthName} {year}</span>
+                    <button className="btn btn-ghost btn-icon btn-sm" onClick={nextMonth}>→</button>
+                </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, marginBottom: 8 }}>
                 {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
@@ -100,13 +113,13 @@ function LeaveCalendar({ leaves }: { leaves: LeaveRequest[] }) {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4 }}>
                 {days.map((d, i) => {
                     const lv = d ? dayLeaves[d] || [] : [];
-                    const today = d === 23;
+                    const isTodayFlag = d ? isToday(d) : false;
                     return (
                         <div key={i} style={{
                             height: 44,
                             borderRadius: "var(--radius-sm)",
-                            background: d ? (today ? "rgba(99,102,241,0.15)" : lv.length ? "rgba(245,158,11,0.12)" : "var(--bg-elevated)") : "transparent",
-                            border: today ? "1px solid var(--brand-500)" : "1px solid transparent",
+                            background: d ? (isTodayFlag ? "rgba(99,102,241,0.15)" : lv.length ? "rgba(245,158,11,0.12)" : "var(--bg-elevated)") : "transparent",
+                            border: isTodayFlag ? "1px solid var(--brand-500)" : "1px solid transparent",
                             display: "flex",
                             flexDirection: "column",
                             alignItems: "center",
@@ -115,7 +128,7 @@ function LeaveCalendar({ leaves }: { leaves: LeaveRequest[] }) {
                             position: "relative",
                         }}>
                             {d && <>
-                                <span style={{ fontSize: 12, fontWeight: today ? 700 : 400, color: today ? "var(--text-brand)" : "var(--text-secondary)" }}>{d}</span>
+                                <span style={{ fontSize: 12, fontWeight: isTodayFlag ? 700 : 400, color: isTodayFlag ? "var(--text-brand)" : "var(--text-secondary)" }}>{d}</span>
                                 {lv.length > 0 && (
                                     <div style={{ display: "flex", gap: 2, marginTop: 2 }}>
                                         {lv.slice(0, 2).map((_, j) => <div key={j} style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--status-warning)" }} />)}
@@ -279,7 +292,7 @@ export default function LeavePage() {
                         <div className="card-title" style={{ marginBottom: 12 }}>Leave Summary</div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                             {[
-                                { label: "Total Requests This Month", value: leaves.filter(l => l.appliedDate?.startsWith("2026-02")).length },
+                                { label: "Total Requests This Month", value: leaves.filter(l => l.appliedDate?.startsWith(new Date().toISOString().slice(0, 7))).length },
                                 { label: "Pending Approval", value: leaves.filter(l => l.status === "Pending").length },
                                 { label: "Approved", value: leaves.filter(l => l.status === "Approved").length },
                                 { label: "Rejected", value: leaves.filter(l => l.status === "Rejected").length },
