@@ -204,7 +204,22 @@ function HostMeetingModal({ onClose, onSend }: { onClose: () => void, onSend: (t
                                 })}
                             </div>
                             {isDropdownOpen && (
-                                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-sm)', marginTop: '4px', maxHeight: '150px', overflowY: 'auto', zIndex: 10 }}>
+                                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-sm)', marginTop: '4px', maxHeight: '180px', overflowY: 'auto', zIndex: 10 }}>
+                                    <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)', position: 'sticky', top: 0, zIndex: 11 }}>
+                                        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                                            {teamIds.length} Selected
+                                        </span>
+                                        <button 
+                                            type="button" 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setTeamIds(teamIds.length === employees.length ? [] : employees.map(e => e.id));
+                                            }}
+                                            style={{ background: 'transparent', border: 'none', color: 'var(--brand-500)', fontSize: '12px', cursor: 'pointer', padding: 0 }}
+                                        >
+                                            {teamIds.length === employees.length ? "Deselect All" : "Select All"}
+                                        </button>
+                                    </div>
                                     {employees.map(emp => (
                                         <div 
                                             key={emp.id} 
