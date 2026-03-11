@@ -55,6 +55,35 @@ export default function DashboardPage({ onNavigate }: DashboardProps = {}) {
         }));
     }, [selectedDept, dateRange]);
 
+    const deptData = useMemo(() => {
+        let baseDeptData = departmentPerformance;
+        // Mock filter based on dateRange selection
+        if (dateRange === "This Month") {
+            baseDeptData = departmentPerformance.map(d => ({ ...d, score: d.score - Math.floor(Math.random() * 5) }));
+        }
+        else if (dateRange === "Last Month") {
+            baseDeptData = departmentPerformance.map(d => ({ ...d, score: d.score - Math.floor(Math.random() * 10) }));
+        }
+        else if (dateRange === "This Quarter") {
+            baseDeptData = departmentPerformance.map(d => ({ ...d, score: d.score - Math.floor(Math.random() * 3) }));
+        }
+        return baseDeptData;
+    }, [dateRange]);
+
+    const kpiData = useMemo(() => {
+        let baseKpis = teamKPIs;
+        if (dateRange === "This Month") {
+            baseKpis = teamKPIs.map(k => ({ ...k, value: Math.max(0, k.value - Math.floor(Math.random() * 15)) }));
+        }
+        else if (dateRange === "Last Month") {
+            baseKpis = teamKPIs.map(k => ({ ...k, value: Math.max(0, k.value - Math.floor(Math.random() * 20)) }));
+        }
+        else if (dateRange === "This Quarter") {
+            baseKpis = teamKPIs.map(k => ({ ...k, value: Math.max(0, k.value - Math.floor(Math.random() * 10)) }));
+        }
+        return baseKpis;
+    }, [dateRange]);
+
     return (
         <div className="fade-in">
             {/* Stats */}
@@ -133,7 +162,7 @@ export default function DashboardPage({ onNavigate }: DashboardProps = {}) {
                         </div>
                     </div>
                     <ResponsiveContainer width="100%" height={180}>
-                        <BarChart data={departmentPerformance} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                        <BarChart data={deptData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
                             <XAxis dataKey="department" tick={{ fill: "#6b7280", fontSize: 10 }} axisLine={false} tickLine={false} />
                             <YAxis tick={{ fill: "#6b7280", fontSize: 11 }} domain={[60, 100]} axisLine={false} tickLine={false} />
@@ -174,7 +203,7 @@ export default function DashboardPage({ onNavigate }: DashboardProps = {}) {
                         <span className="badge badge-success">On Track</span>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                        {teamKPIs.map((kpi) => {
+                        {kpiData.map((kpi) => {
                             const pct = Math.min(100, Math.round((kpi.value / kpi.target) * 100));
                             const color = pct >= 100 ? "var(--status-success)" : pct >= 80 ? "var(--brand-500)" : "var(--status-warning)";
                             return (
