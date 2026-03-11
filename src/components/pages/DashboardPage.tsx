@@ -1,8 +1,9 @@
 "use client";
 import React, { useState, useMemo } from "react";
-import { employees, leaveRequests, performanceRecords, teamKPIs, performanceTrend, departmentPerformance, formatCurrency } from "@/lib/data";
+import { employees, leaveRequests, performanceRecords, teamKPIs, performanceTrend, departmentPerformance } from "@/lib/data";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useDateRange } from "@/contexts/DateContext";
+import { useSettings } from "@/contexts/SettingsContext";
 
 const totalHeadcount = employees.filter(e => e.status === "Active").length;
 const onLeave = employees.filter(e => e.status === "On Leave").length;
@@ -42,6 +43,7 @@ export default function DashboardPage({ onNavigate }: DashboardProps = {}) {
     const [selectedDept, setSelectedDept] = useState("All");
     const [showAllActivity, setShowAllActivity] = useState(false);
     const { dateRange } = useDateRange();
+    const { formatCurrency } = useSettings();
     const departments = ["All", "Engineering", "Design", "Marketing", "Sales", "HR", "Finance"];
 
     const trendData = useMemo(() => {

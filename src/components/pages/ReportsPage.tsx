@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { employees, payrollRecords, leaveRequests, performanceRecords, formatCurrency } from "@/lib/data";
+import { employees, payrollRecords, leaveRequests, performanceRecords } from "@/lib/data";
+import { useSettings } from "@/contexts/SettingsContext";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 // Generic CSV Download Function
@@ -55,6 +56,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function ReportsPage() {
+    const { formatCurrency } = useSettings();
     const [timeRange, setTimeRange] = useState("Year to Date");
 
     // Dynamic Multipliers based on time range to simulate changing data

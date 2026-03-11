@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { projects, getEmployee, formatCurrency, Project, employees } from "@/lib/data";
+import { projects, getEmployee, Project, employees } from "@/lib/data";
+import { useSettings } from "@/contexts/SettingsContext";
 
 function AddProjectModal({ onClose, onAdd, project }: { onClose: () => void, onAdd: (p: Project) => void, project?: Project }) {
     const [name, setName] = useState(project?.name || "");
@@ -114,6 +115,7 @@ function AddProjectModal({ onClose, onAdd, project }: { onClose: () => void, onA
 }
 
 export default function ProjectsPage() {
+    const { formatCurrency } = useSettings();
     const [projectList, setProjectList] = useState<Project[]>(projects);
     const [filterStatus, setFilterStatus] = useState("all");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);

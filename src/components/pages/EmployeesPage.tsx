@@ -1,12 +1,14 @@
 "use client";
 import { useState } from "react";
-import { employees, Employee, Department, Role, formatCurrency } from "@/lib/data";
+import { employees, Employee, Department, Role } from "@/lib/data";
 import { useChat } from "@/contexts/ChatContext";
 import { useRouter } from "next/navigation";
+import { useSettings } from "@/contexts/SettingsContext";
 
 const DEPARTMENTS: Department[] = ["Engineering", "Design", "Marketing", "Sales", "HR", "Finance", "Operations"];
 
 function EmployeeModal({ emp, onClose }: { emp: Employee; onClose: () => void }) {
+    const { formatCurrency } = useSettings();
     const manager = emp.managerId ? employees.find(e => e.id === emp.managerId) : null;
     const reports = employees.filter(e => e.managerId === emp.id);
 
@@ -245,6 +247,7 @@ function HostMeetingModal({ onClose, onSend }: { onClose: () => void, onSend: (t
 }
 
 export default function EmployeesPage() {
+    const { formatCurrency } = useSettings();
     const [search, setSearch] = useState("");
     const [filterDep, setFilterDep] = useState("All");
     const [filterRole, setFilterRole] = useState("All");

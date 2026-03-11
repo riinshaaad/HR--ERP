@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
-import { employees, payrollRecords, getEmployee, formatCurrency } from "@/lib/data";
+import { employees, payrollRecords, getEmployee } from "@/lib/data";
+import { useSettings } from "@/contexts/SettingsContext";
 
 function PayslipModal({ payrollId, onClose }: { payrollId: string; onClose: () => void }) {
+    const { formatCurrency } = useSettings();
     const record = payrollRecords.find(p => p.id === payrollId);
     const emp = record ? getEmployee(record.employeeId) : null;
     if (!record || !emp) return null;
@@ -73,6 +75,7 @@ function PayslipModal({ payrollId, onClose }: { payrollId: string; onClose: () =
 }
 
 export default function PayrollPage() {
+    const { formatCurrency } = useSettings();
     const [selectedPayslip, setSelectedPayslip] = useState<string | null>(null);
     const [filterEmployee, setFilterEmployee] = useState("all");
     const [filterMonth, setFilterMonth] = useState("all");
