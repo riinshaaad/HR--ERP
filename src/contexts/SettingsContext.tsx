@@ -9,14 +9,27 @@ type SettingsContextType = {
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
+const EXCHANGE_RATES: Record<string, number> = {
+    "USD": 1,
+    "EUR": 0.92,
+    "GBP": 0.79,
+    "INR": 83.2,
+    "AUD": 1.54,
+    "CAD": 1.35,
+};
+
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const [defaultCurrency, setDefaultCurrency] = useState("USD");
 
     const formatCurrency = (amount: number) => {
+        // Convert the base USD amount to the selected currency
+        const rate = EXCHANGE_RATES[defaultCurrency] || 1;
+        const convertedAmount = amount * rate;
+
         return new Intl.NumberFormat("en-US", {
             style: "currency",
             currency: defaultCurrency,
-        }).format(amount);
+        }).format(convertedAmount);
     };
 
     return (

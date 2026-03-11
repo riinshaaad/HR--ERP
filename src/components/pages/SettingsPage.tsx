@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 
+import { useSettings } from "@/contexts/SettingsContext";
+
 const SECTIONS = ["General", "Security", "Notifications", "Roles & Permissions", "Integrations", "Audit Log"];
 
 const auditLog = [
@@ -16,6 +18,7 @@ export default function SettingsPage() {
     const [activeSection, setActiveSection] = useState("General");
     const [notifications, setNotifications] = useState({ email: true, leaveApproval: true, payroll: true, performance: false, system: true });
     const [saved, setSaved] = useState(false);
+    const { defaultCurrency, setDefaultCurrency } = useSettings();
 
     const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
 
@@ -44,7 +47,17 @@ export default function SettingsPage() {
                             <div className="form-group"><label>Company Size</label><select><option>1–50</option><option>51–200</option><option selected>201–500</option><option>500+</option></select></div>
                             <div className="form-group"><label>Timezone</label><select><option>UTC+05:30 IST</option><option>UTC-05:00 EST</option><option>UTC+00:00 GMT</option></select></div>
                             <div className="form-group"><label>Fiscal Year Start</label><select><option>January</option><option>April</option><option>July</option></select></div>
-                            <div className="form-group"><label>Default Currency</label><select><option>USD — US Dollar</option><option>INR — Indian Rupee</option><option>EUR — Euro</option></select></div>
+                            <div className="form-group">
+                                <label>Default Currency</label>
+                                <select value={defaultCurrency} onChange={(e) => setDefaultCurrency(e.target.value)}>
+                                    <option value="USD">USD — US Dollar</option>
+                                    <option value="INR">INR — Indian Rupee</option>
+                                    <option value="EUR">EUR — Euro</option>
+                                    <option value="GBP">GBP — British Pound</option>
+                                    <option value="AUD">AUD — Australian Dollar</option>
+                                    <option value="CAD">CAD — Canadian Dollar</option>
+                                </select>
+                            </div>
                             <div className="form-group"><label>Date Format</label><select><option>MM/DD/YYYY</option><option>DD/MM/YYYY</option><option>YYYY-MM-DD</option></select></div>
                         </div>
                         <div className="form-group"><label>Company Address</label><textarea rows={2} defaultValue="100 Market Street, San Francisco, CA 94105" style={{ resize: "none" }} /></div>
