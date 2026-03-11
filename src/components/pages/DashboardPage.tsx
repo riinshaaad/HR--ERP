@@ -15,6 +15,11 @@ const recentActivity = [
     { label: "Raj Nair's payslip generated for January", time: "1 day ago", icon: "💰" },
     { label: "Performance review cycle Q1 started", time: "2 days ago", icon: "📊" },
     { label: "David Kim approved for medical leave", time: "3 days ago", icon: "✅" },
+    { label: "Elena Rossi onboarded as Senior Designer", time: "4 days ago", icon: "👋" },
+    { label: "Company town hall meeting scheduled", time: "5 days ago", icon: "📢" },
+    { label: "System maintenance completed successfully", time: "1 week ago", icon: "⚙️" },
+    { label: "Monthly budget reports generated", time: "1 week ago", icon: "📑" },
+    { label: "New remote work policy updated", time: "2 weeks ago", icon: "📝" },
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -35,6 +40,7 @@ interface DashboardProps {
 
 export default function DashboardPage({ onNavigate }: DashboardProps = {}) {
     const [selectedDept, setSelectedDept] = useState("All");
+    const [showAllActivity, setShowAllActivity] = useState(false);
     const { dateRange } = useDateRange();
     const departments = ["All", "Engineering", "Design", "Marketing", "Sales", "HR", "Finance"];
 
@@ -186,10 +192,12 @@ export default function DashboardPage({ onNavigate }: DashboardProps = {}) {
                 <div className="card">
                     <div className="card-header">
                         <div className="card-title">Recent Activity</div>
-                        <button className="btn btn-ghost btn-sm">View all</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => setShowAllActivity(!showAllActivity)}>
+                            {showAllActivity ? "Show less" : "View all"}
+                        </button>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                        {recentActivity.map((item, i) => (
+                        {(showAllActivity ? recentActivity : recentActivity.slice(0, 5)).map((item, i) => (
                             <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                                 <div style={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", background: "var(--bg-elevated)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 14 }}>
                                     {item.icon}
