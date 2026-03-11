@@ -2,24 +2,25 @@
 import { useState } from "react";
 import { projects, getEmployee, formatCurrency, Project, employees } from "@/lib/data";
 
-function AddProjectModal({ onClose, onAdd }: { onClose: () => void, onAdd: (p: Project) => void }) {
-    const [name, setName] = useState("");
-    const [client, setClient] = useState("");
-    const [description, setDescription] = useState("");
-    const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
-    const [teamIds, setTeamIds] = useState<string[]>([]);
-    const [budget, setBudget] = useState("");
+function AddProjectModal({ onClose, onAdd, project }: { onClose: () => void, onAdd: (p: Project) => void, project?: Project }) {
+    const [name, setName] = useState(project?.name || "");
+    const [client, setClient] = useState(project?.client || "");
+    const [description, setDescription] = useState(project?.description || "");
+    const [startDate, setStartDate] = useState(project?.startDate || "");
+    const [endDate, setEndDate] = useState(project?.endDate || "");
+    const [teamIds, setTeamIds] = useState<string[]>(project?.teamIds || []);
+    const [budget, setBudget] = useState(project?.budget?.toString() || "");
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onAdd({
-            id: `proj-${Date.now()}`,
+            id: project?.id || `proj-${Date.now()}`,
             name,
             client,
             description,
-            status: "Active",
-            progress: 0,
+            status: project?.status || "Active",
+            progress: project?.progress || 0,
             startDate,
             endDate,
             budget: Number(budget) || 0,
@@ -28,12 +29,16 @@ function AddProjectModal({ onClose, onAdd }: { onClose: () => void, onAdd: (p: P
         onClose();
     };
 
+    const toggleTeamMember = (id: string) => {
+        setTeamIds(prev => prev.includes(id) ? prev.filter(tId => tId !== id) : [...prev, id]);
+    };
+
     return (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
             <div className="modal">
                 <form onSubmit={handleSubmit}>
                     <div className="modal-header">
-                        <span className="modal-title">New Project</span>
+                        <span className="modal-title">{project ? "Edit Project" : "New Project"}</span>
                         <button type="button" className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
                     </div>
                     <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -64,29 +69,43 @@ function AddProjectModal({ onClose, onAdd }: { onClose: () => void, onAdd: (p: P
                                 <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>Budget ($)</label>
                                 <input required type="number" min="0" className="input" value={budget} onChange={e => setBudget(e.target.value)} style={{ width: '100%' }} />
                             </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>Team (Optional)</label>
-                                <select 
+                            <div style={{ position: 'relative' }}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>Team Memebers</label>
+                                <div 
                                     className="input" 
-                                    style={{ width: '100%', height: '80px' }} 
-                                    multiple
-                                    value={teamIds}
-                                    onChange={(e) => {
-                                        const values = Array.from(e.target.selectedOptions, option => option.value);
-                                        setTeamIds(values);
-                                    }}
+                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                    style={{ width: '100%', minHeight: '38px', cursor: 'pointer', display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', padding: '6px 12px' }}
                                 >
-                                    {employees.map(emp => (
-                                        <option key={emp.id} value={emp.id}>{emp.name}</option>
-                                    ))}
-                                </select>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Hold Cmd/Ctrl to select multiple.</div>
+                                    {teamIds.length === 0 ? <span style={{ color: 'var(--text-muted)' }}>Select team...</span> : teamIds.map(id => {
+                                        const emp = getEmployee(id);
+                                        return (
+                                            <span key={id} style={{ background: 'var(--brand-500)', color: 'white', fontSize: '11px', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                {emp?.name}
+                                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleTeamMember(id); }} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: 0 }}>✕</button>
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                                {isDropdownOpen && (
+                                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-sm)', marginTop: '4px', maxHeight: '150px', overflowY: 'auto', zIndex: 10 }}>
+                                        {employees.map(emp => (
+                                            <div 
+                                                key={emp.id} 
+                                                onClick={() => toggleTeamMember(emp.id)}
+                                                style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: teamIds.includes(emp.id) ? 'var(--bg-hover)' : 'transparent' }}
+                                            >
+                                                <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{emp.name}</span>
+                                                {teamIds.includes(emp.id) && <span style={{ color: 'var(--brand-500)' }}>✓</span>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-                        <button type="submit" className="btn btn-primary">Create Project</button>
+                        <button type="submit" className="btn btn-primary">{project ? "Save Changes" : "Create Project"}</button>
                     </div>
                 </form>
             </div>
@@ -98,6 +117,7 @@ export default function ProjectsPage() {
     const [projectList, setProjectList] = useState<Project[]>(projects);
     const [filterStatus, setFilterStatus] = useState("all");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [editingProject, setEditingProject] = useState<Project | null>(null);
 
     const filteredProjects = projectList.filter(p => {
         if (filterStatus === "all") return true;
@@ -107,6 +127,16 @@ export default function ProjectsPage() {
     const activeCount = projectList.filter(p => p.status === "Active").length;
     const completedCount = projectList.filter(p => p.status === "Completed").length;
     const totalBudget = projectList.reduce((sum, p) => sum + p.budget, 0);
+
+    const handleSaveProject = (updatedProject: Project) => {
+        if (editingProject) {
+            setProjectList(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+        } else {
+            setProjectList([updatedProject, ...projectList]);
+        }
+        setEditingProject(null);
+        setIsAddModalOpen(false);
+    };
 
     return (
         <div className="fade-in">
@@ -155,8 +185,18 @@ export default function ProjectsPage() {
 
                         {/* Header */}
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                            <div>
-                                <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "600", color: "var(--text-primary)" }}>{project.name}</h3>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "600", color: "var(--text-primary)" }}>{project.name}</h3>
+                                    <button 
+                                        onClick={() => setEditingProject(project)}
+                                        className="btn btn-ghost btn-icon" 
+                                        style={{ width: '24px', height: '24px', minHeight: '24px', padding: 0 }}
+                                        title="Edit Project"
+                                    >
+                                        ✎
+                                    </button>
+                                </div>
                                 <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>Client: {project.client}</div>
                             </div>
                             <span className={`badge ${project.status === 'Completed' ? 'badge-success' :
@@ -238,10 +278,14 @@ export default function ProjectsPage() {
                 </div>
             )}
 
-            {isAddModalOpen && (
+            {(isAddModalOpen || editingProject) && (
                 <AddProjectModal
-                    onClose={() => setIsAddModalOpen(false)}
-                    onAdd={(newProject) => setProjectList([newProject, ...projectList])}
+                    project={editingProject || undefined}
+                    onClose={() => {
+                        setIsAddModalOpen(false);
+                        setEditingProject(null);
+                    }}
+                    onAdd={handleSaveProject}
                 />
             )}
         </div>
