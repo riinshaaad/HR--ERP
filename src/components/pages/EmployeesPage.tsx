@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { employees, Employee, Department, Role, formatCurrency } from "@/lib/data";
+import { useChat } from "@/contexts/ChatContext";
+import { useRouter } from "next/navigation";
 
 const DEPARTMENTS: Department[] = ["Engineering", "Design", "Marketing", "Sales", "HR", "Finance", "Operations"];
 
@@ -156,12 +158,86 @@ function AddEmployeeModal({ onClose }: { onClose: () => void }) {
     );
 }
 
+function HostMeetingModal({ onClose, onSend }: { onClose: () => void, onSend: (topic: string, teamIds: string[]) => void }) {
+    const [topic, setTopic] = useState("");
+    const [teamIds, setTeamIds] = useState<string[]>([]);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const toggleTeamMember = (id: string) => {
+        setTeamIds(prev => prev.includes(id) ? prev.filter(tId => tId !== id) : [...prev, id]);
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSend(topic, teamIds);
+        onClose();
+    };
+
+    return (
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+            <div className="modal">
+                <form onSubmit={handleSubmit}>
+                    <div className="modal-header">
+                        <span className="modal-title">Host Meeting</span>
+                        <button type="button" className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
+                    </div>
+                    <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>Meeting Topic</label>
+                            <input required className="input" placeholder="e.g. Q1 Planning Sync" value={topic} onChange={e => setTopic(e.target.value)} style={{ width: '100%' }} />
+                        </div>
+                        <div style={{ position: 'relative' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>Select Attendees</label>
+                            <div 
+                                className="input" 
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                style={{ width: '100%', minHeight: '38px', cursor: 'pointer', display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', padding: '6px 12px' }}
+                            >
+                                {teamIds.length === 0 ? <span style={{ color: 'var(--text-muted)' }}>Select attendees...</span> : teamIds.map(id => {
+                                    const emp = employees.find(e => e.id === id);
+                                    return (
+                                        <span key={id} style={{ background: 'var(--brand-500)', color: 'white', fontSize: '11px', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            {emp?.name}
+                                            <button type="button" onClick={(e) => { e.stopPropagation(); toggleTeamMember(id); }} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: 0 }}>✕</button>
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                            {isDropdownOpen && (
+                                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-sm)', marginTop: '4px', maxHeight: '150px', overflowY: 'auto', zIndex: 10 }}>
+                                    {employees.map(emp => (
+                                        <div 
+                                            key={emp.id} 
+                                            onClick={() => toggleTeamMember(emp.id)}
+                                            style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: teamIds.includes(emp.id) ? 'var(--bg-hover)' : 'transparent' }}
+                                        >
+                                            <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{emp.name}</span>
+                                            {teamIds.includes(emp.id) && <span style={{ color: 'var(--brand-500)' }}>✓</span>}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                        <button type="submit" className="btn btn-primary" disabled={teamIds.length === 0 || !topic}>Send Invites</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 export default function EmployeesPage() {
     const [search, setSearch] = useState("");
     const [filterDep, setFilterDep] = useState("All");
     const [filterRole, setFilterRole] = useState("All");
     const [selected, setSelected] = useState<Employee | null>(null);
     const [adding, setAdding] = useState(false);
+    const [hostingMeeting, setHostingMeeting] = useState(false);
+    const { sendMessage } = useChat();
+    const router = useRouter(); // To redirect to chats page if we wanted, but not strictly needed unless user wants to go there immediately
 
     const filtered = employees.filter(emp => {
         const matchSearch = emp.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -171,6 +247,18 @@ export default function EmployeesPage() {
         const matchRole = filterRole === "All" || emp.role === filterRole;
         return matchSearch && matchDep && matchRole;
     });
+
+    const handleSendMeeting = (topic: string, selectedTeamIds: string[]) => {
+        const meetingLink = `https://meet.hrx.com/${Math.random().toString(36).substring(7)}`;
+        const messageText = `You are invited to a meeting: ${topic}\nJoin here: ${meetingLink}`;
+        
+        selectedTeamIds.forEach(id => {
+            // we assume thread ID correlates to the user ID for 1-1 chats
+            sendMessage(id, messageText);
+        });
+
+        alert(`Meeting invites sent to ${selectedTeamIds.length} employees!`);
+    };
 
     return (
         <div className="fade-in">
@@ -190,7 +278,10 @@ export default function EmployeesPage() {
                     <option>Manager</option>
                     <option>Employee</option>
                 </select>
-                <button className="btn btn-primary" style={{ marginLeft: "auto" }} onClick={() => setAdding(true)}>
+                <button className="btn btn-secondary" style={{ marginLeft: "auto" }} onClick={() => setHostingMeeting(true)}>
+                    📹 Host Meeting
+                </button>
+                <button className="btn btn-primary" onClick={() => setAdding(true)}>
                     + Add Employee
                 </button>
             </div>
@@ -251,6 +342,7 @@ export default function EmployeesPage() {
 
             {selected && <EmployeeModal emp={selected} onClose={() => setSelected(null)} />}
             {adding && <AddEmployeeModal onClose={() => setAdding(false)} />}
+            {hostingMeeting && <HostMeetingModal onClose={() => setHostingMeeting(false)} onSend={handleSendMeeting} />}
         </div>
     );
 }
