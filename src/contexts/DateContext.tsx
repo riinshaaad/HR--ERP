@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState } from "react";
 
-export type DateRange = "This Month" | "Last Month" | "This Quarter" | "Last 6 Months" | "This Year" | "All Time";
+export type DateRange = "This Month" | "Last Month" | "This Quarter" | "Last Quarter" | "Last 6 Months" | "This Year" | "All Time";
 
 type DateContextType = {
     dateRange: DateRange;

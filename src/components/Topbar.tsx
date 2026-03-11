@@ -75,6 +75,7 @@ export default function Topbar({ page, onAction, actionLabel }: TopbarProps) {
                         <option>This Month</option>
                         <option>Last Month</option>
                         <option>This Quarter</option>
+                        <option>Last Quarter</option>
                         <option>Last 6 Months</option>
                         <option>This Year</option>
                         <option>All Time</option>

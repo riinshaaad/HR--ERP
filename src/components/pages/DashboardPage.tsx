@@ -45,6 +45,7 @@ export default function DashboardPage({ onNavigate }: DashboardProps = {}) {
         if (dateRange === "This Month") baseData = performanceTrend.slice(-1);
         else if (dateRange === "Last Month") baseData = performanceTrend.slice(-2, -1);
         else if (dateRange === "This Quarter") baseData = performanceTrend.slice(-3);
+        else if (dateRange === "Last Quarter") baseData = performanceTrend.slice(-6, -3);
         else if (dateRange === "This Year") baseData = performanceTrend; // Assuming mock data is within a year
         
         if (selectedDept === "All") return baseData;
@@ -67,6 +68,9 @@ export default function DashboardPage({ onNavigate }: DashboardProps = {}) {
         else if (dateRange === "This Quarter") {
             baseDeptData = departmentPerformance.map(d => ({ ...d, score: d.score - Math.floor(Math.random() * 3) }));
         }
+        else if (dateRange === "Last Quarter") {
+            baseDeptData = departmentPerformance.map(d => ({ ...d, score: d.score - Math.floor(Math.random() * 8) }));
+        }
         return baseDeptData;
     }, [dateRange]);
 
@@ -80,6 +84,9 @@ export default function DashboardPage({ onNavigate }: DashboardProps = {}) {
         }
         else if (dateRange === "This Quarter") {
             baseKpis = teamKPIs.map(k => ({ ...k, value: Math.max(0, k.value - Math.floor(Math.random() * 10)) }));
+        }
+        else if (dateRange === "Last Quarter") {
+            baseKpis = teamKPIs.map(k => ({ ...k, value: Math.max(0, k.value - Math.floor(Math.random() * 18)) }));
         }
         return baseKpis;
     }, [dateRange]);
