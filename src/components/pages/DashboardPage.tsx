@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from "react";
 import { employees, leaveRequests, performanceRecords, teamKPIs, performanceTrend, departmentPerformance, formatCurrency } from "@/lib/data";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useDateRange } from "@/contexts/DateContext";
 
 const totalHeadcount = employees.filter(e => e.status === "Active").length;
 const onLeave = employees.filter(e => e.status === "On Leave").length;
@@ -34,16 +35,25 @@ interface DashboardProps {
 
 export default function DashboardPage({ onNavigate }: DashboardProps = {}) {
     const [selectedDept, setSelectedDept] = useState("All");
+    const { dateRange } = useDateRange();
     const departments = ["All", "Engineering", "Design", "Marketing", "Sales", "HR", "Finance"];
 
     const trendData = useMemo(() => {
-        if (selectedDept === "All") return performanceTrend;
+        let baseData = performanceTrend;
+
+        // Apply a mock filter based on dateRange selection
+        if (dateRange === "This Month") baseData = performanceTrend.slice(-1);
+        else if (dateRange === "Last Month") baseData = performanceTrend.slice(-2, -1);
+        else if (dateRange === "This Quarter") baseData = performanceTrend.slice(-3);
+        else if (dateRange === "This Year") baseData = performanceTrend; // Assuming mock data is within a year
+        
+        if (selectedDept === "All") return baseData;
         const deptScore = departmentPerformance.find(d => d.department === selectedDept)?.score || 86;
-        return performanceTrend.map(t => ({
+        return baseData.map(t => ({
             ...t,
             score: Math.round(t.score * (deptScore / 86))
         }));
-    }, [selectedDept]);
+    }, [selectedDept, dateRange]);
 
     return (
         <div className="fade-in">

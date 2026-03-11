@@ -1,6 +1,6 @@
-"use client";
 import React, { useState, useRef, useEffect } from "react";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { useDateRange, DateRange } from "@/contexts/DateContext";
 interface TopbarProps {
     page: string;
     onAction?: () => void;
@@ -22,6 +22,7 @@ const PAGE_TITLES: Record<string, { title: string; desc: string }> = {
 export default function Topbar({ page, onAction, actionLabel }: TopbarProps) {
     const info = PAGE_TITLES[page] || { title: page, desc: "" };
     const { notifications, markAllAsRead } = useNotifications();
+    const { dateRange, setDateRange } = useDateRange();
     const unreadCount = notifications.filter(n => !n.read).length;
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -43,9 +44,46 @@ export default function Topbar({ page, onAction, actionLabel }: TopbarProps) {
                 <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{info.desc}</div>
             </div>
 
-            {/* Notifications */}
-            <div style={{ position: "relative" }} ref={dropdownRef}>
-                <button
+            {/* Global Actions */}
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                {/* Date Slicer */}
+                <div style={{
+                    background: "var(--bg-elevated)",
+                    border: "1px solid var(--border-default)",
+                    borderRadius: "var(--radius-sm)",
+                    padding: "6px 12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontSize: 13,
+                    color: "var(--text-primary)"
+                }}>
+                    <span style={{ color: "var(--text-muted)" }}>📅</span>
+                    <select 
+                        style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "inherit",
+                            fontSize: "inherit",
+                            outline: "none",
+                            cursor: "pointer",
+                            padding: 0
+                        }}
+                        value={dateRange}
+                        onChange={(e) => setDateRange(e.target.value as DateRange)}
+                    >
+                        <option>This Month</option>
+                        <option>Last Month</option>
+                        <option>This Quarter</option>
+                        <option>Last 6 Months</option>
+                        <option>This Year</option>
+                        <option>All Time</option>
+                    </select>
+                </div>
+
+                {/* Notifications */}
+                <div style={{ position: "relative" }} ref={dropdownRef}>
+                    <button
                     className="btn btn-ghost btn-icon"
                     style={{ position: "relative" }}
                     onClick={() => {
@@ -113,6 +151,7 @@ export default function Topbar({ page, onAction, actionLabel }: TopbarProps) {
                     <span>+</span> {actionLabel}
                 </button>
             )}
+            </div>
         </header>
     );
 }
