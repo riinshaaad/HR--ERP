@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { projects, getEmployee, formatCurrency, Project } from "@/lib/data";
+import { projects, getEmployee, formatCurrency, Project, employees } from "@/lib/data";
 
 function AddProjectModal({ onClose, onAdd }: { onClose: () => void, onAdd: (p: Project) => void }) {
     const [name, setName] = useState("");
@@ -8,6 +8,7 @@ function AddProjectModal({ onClose, onAdd }: { onClose: () => void, onAdd: (p: P
     const [description, setDescription] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [teamIds, setTeamIds] = useState<string[]>([]);
     const [budget, setBudget] = useState("");
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -22,7 +23,7 @@ function AddProjectModal({ onClose, onAdd }: { onClose: () => void, onAdd: (p: P
             startDate,
             endDate,
             budget: Number(budget) || 0,
-            teamIds: [] // Default to empty team, can be assigned later
+            teamIds
         });
         onClose();
     };
@@ -58,9 +59,29 @@ function AddProjectModal({ onClose, onAdd }: { onClose: () => void, onAdd: (p: P
                                 <input required type="date" className="input" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ width: '100%' }} />
                             </div>
                         </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>Budget ($)</label>
-                            <input required type="number" min="0" className="input" value={budget} onChange={e => setBudget(e.target.value)} style={{ width: '100%' }} />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>Budget ($)</label>
+                                <input required type="number" min="0" className="input" value={budget} onChange={e => setBudget(e.target.value)} style={{ width: '100%' }} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>Team (Optional)</label>
+                                <select 
+                                    className="input" 
+                                    style={{ width: '100%', height: '80px' }} 
+                                    multiple
+                                    value={teamIds}
+                                    onChange={(e) => {
+                                        const values = Array.from(e.target.selectedOptions, option => option.value);
+                                        setTeamIds(values);
+                                    }}
+                                >
+                                    {employees.map(emp => (
+                                        <option key={emp.id} value={emp.id}>{emp.name}</option>
+                                    ))}
+                                </select>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Hold Cmd/Ctrl to select multiple.</div>
+                            </div>
                         </div>
                     </div>
                     <div className="modal-footer">
