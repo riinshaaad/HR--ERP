@@ -1,5 +1,7 @@
 "use client";
+import React, { useState, useRef, useEffect } from "react";
 import { employees } from "@/lib/data";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface SidebarProps {
     active: string;
@@ -18,6 +20,7 @@ const NAV = [
         section: "People",
         items: [
             { id: "employees", label: "Employees", icon: "◉" },
+            { id: "chats", label: "Chats", icon: "💬" },
             { id: "leave", label: "Leave Management", icon: "◷", badge: 2 },
         ],
     },
@@ -26,6 +29,7 @@ const NAV = [
         items: [
             { id: "payroll", label: "Payroll", icon: "◈" },
             { id: "performance", label: "Performance", icon: "◎" },
+            { id: "chart", label: "Chart", icon: "📊" },
         ],
     },
     {
@@ -41,6 +45,25 @@ const NAV = [
 const me = employees[0]; // HR Admin as logged-in user
 
 export default function Sidebar({ active, onNavigate }: SidebarProps) {
+    const { theme, toggleTheme } = useTheme();
+    const [showUserMenu, setShowUserMenu] = useState(false);
+    const userMenuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+                setShowUserMenu(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleLogout = () => {
+        alert("Logged out from HRX");
+        setShowUserMenu(false);
+    };
+
     return (
         <aside className="sidebar">
             {/* Logo */}
@@ -75,8 +98,61 @@ export default function Sidebar({ active, onNavigate }: SidebarProps) {
             </nav>
 
             {/* Footer */}
-            <div className="sidebar-footer">
-                <div className="user-card">
+            <div className="sidebar-footer" style={{ position: "relative" }} ref={userMenuRef}>
+                {showUserMenu && (
+                    <div style={{
+                        position: "absolute",
+                        bottom: "100%",
+                        left: 20,
+                        right: 20,
+                        marginBottom: 8,
+                        background: "var(--bg-elevated)",
+                        border: "1px solid var(--border-default)",
+                        borderRadius: "var(--radius-md)",
+                        boxShadow: "0 -4px 15px -3px rgba(0, 0, 0, 0.3)",
+                        zIndex: 50,
+                        overflow: "hidden"
+                    }}>
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                            <button
+                                onClick={toggleTheme}
+                                style={{
+                                    padding: "12px 16px",
+                                    border: "none",
+                                    background: "transparent",
+                                    color: "var(--text-primary)",
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                    cursor: "pointer",
+                                    textAlign: "left",
+                                    borderBottom: "1px solid var(--border-subtle)"
+                                }}
+                            >
+                                {theme === "dark" ? "☀️ Switch to Light Theme" : "🌙 Switch to Dark Theme"}
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                style={{
+                                    padding: "12px 16px",
+                                    border: "none",
+                                    background: "transparent",
+                                    color: "var(--status-error)",
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                    cursor: "pointer",
+                                    textAlign: "left"
+                                }}
+                            >
+                                🚪 Log out
+                            </button>
+                        </div>
+                    </div>
+                )}
+                <div
+                    className="user-card"
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    style={{ background: showUserMenu ? "var(--bg-elevated)" : undefined }}
+                >
                     <div className="avatar avatar-md">{me.avatar}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -84,7 +160,9 @@ export default function Sidebar({ active, onNavigate }: SidebarProps) {
                         </div>
                         <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{me.role}</div>
                     </div>
-                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--status-success)", flexShrink: 0 }} />
+                    <div>
+                        <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{showUserMenu ? "▼" : "▲"}</span>
+                    </div>
                 </div>
             </div>
         </aside>

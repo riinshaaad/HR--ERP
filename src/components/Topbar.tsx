@@ -10,9 +10,11 @@ interface TopbarProps {
 const PAGE_TITLES: Record<string, { title: string; desc: string }> = {
     dashboard: { title: "Dashboard", desc: "Welcome back, Mohammed 👋" },
     employees: { title: "Employees", desc: "Manage your workforce" },
+    chats: { title: "Chats", desc: "Communicate with your team" },
     leave: { title: "Leave Management", desc: "Track and approve leave requests" },
     payroll: { title: "Payroll", desc: "Salary processing and payslips" },
     performance: { title: "Performance", desc: "KPIs, goals and review cycles" },
+    chart: { title: "Analytics & Charts", desc: "Detailed performance and operational metrics" },
     reports: { title: "Reports", desc: "Analytics and insights" },
     settings: { title: "Settings", desc: "System configuration" },
 };
