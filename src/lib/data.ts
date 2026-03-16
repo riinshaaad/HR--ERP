@@ -422,28 +422,40 @@ export const leaveBalances: LeaveBalance[] = employees.map((e) => ({
 
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-export const payrollRecords: PayrollRecord[] = employees.flatMap((emp) =>
-  [1, 2].map((monthOffset, i) => {
-    const monthIndex = (new Date().getMonth() - monthOffset + 12) % 12;
-    const basic = emp.salary / 12;
-    const allowances = basic * 0.15;
-    const deductions = basic * 0.05;
-    const tax = basic * 0.22;
-    const net = basic + allowances - deductions - tax;
-    return {
-      id: `pay-${emp.id}-${monthOffset}`,
+export const payrollRecords: PayrollRecord[] = employees.flatMap((emp) => {
+  const basic = emp.salary / 12;
+  const allowances = basic * 0.15;
+  const deductions = basic * 0.05;
+  const tax = basic * 0.22;
+  const net = basic + allowances - deductions - tax;
+  
+  return [
+    {
+      id: `pay-${emp.id}-feb-2026`,
       employeeId: emp.id,
-      month: months[monthIndex],
+      month: "February",
       year: 2026,
       basicSalary: Math.round(basic),
       allowances: Math.round(allowances),
       deductions: Math.round(deductions),
       tax: Math.round(tax),
       netPay: Math.round(net),
-      status: i === 0 ? "Paid" : "Pending",
-    } as PayrollRecord;
-  })
-);
+      status: "Paid",
+    },
+    {
+      id: `pay-${emp.id}-jan-2026`,
+      employeeId: emp.id,
+      month: "January",
+      year: 2026,
+      basicSalary: Math.round(basic),
+      allowances: Math.round(allowances),
+      deductions: Math.round(deductions),
+      tax: Math.round(tax),
+      netPay: Math.round(net),
+      status: "Pending",
+    }
+  ];
+});
 
 // ─── Mock Performance Records ─────────────────────────────────────────────────
 

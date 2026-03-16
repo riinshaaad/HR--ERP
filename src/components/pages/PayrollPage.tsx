@@ -3,6 +3,187 @@ import { useState } from "react";
 import { employees, payrollRecords, getEmployee } from "@/lib/data";
 import { useSettings } from "@/contexts/SettingsContext";
 
+interface SalaryComponent {
+    name: string;
+    type: "Earning" | "Deduction";
+    method: string;
+    value: string;
+}
+
+function FlexibleStructuresModal({ 
+    components, 
+    onClose, 
+    onAddComponent,
+    onEditComponent,
+    onRemoveComponent
+}: { 
+    components: SalaryComponent[]; 
+    onClose: () => void;
+    onAddComponent: (c: SalaryComponent) => void;
+    onEditComponent: (index: number, c: SalaryComponent) => void;
+    onRemoveComponent: (index: number) => void;
+}) {
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editIndex, setEditIndex] = useState<number | null>(null);
+    const [formData, setFormData] = useState<SalaryComponent>({
+        name: "",
+        type: "Earning",
+        method: "Fixed",
+        value: ""
+    });
+
+    const handleOpenAdd = () => {
+        setEditIndex(null);
+        setFormData({ name: "", type: "Earning", method: "Fixed", value: "" });
+        setIsFormOpen(true);
+    };
+
+    const handleOpenEdit = (index: number) => {
+        setEditIndex(index);
+        setFormData(components[index]);
+        setIsFormOpen(true);
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!formData.name || !formData.value) return;
+        
+        if (editIndex !== null) {
+            onEditComponent(editIndex, formData);
+        } else {
+            onAddComponent(formData);
+        }
+        
+        setIsFormOpen(false);
+    };
+
+    return (
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+            <div className="modal" style={{ maxWidth: 600 }}>
+                <div className="modal-header">
+                    <span className="modal-title">Flexible Salary Structures</span>
+                    <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
+                </div>
+                <div className="modal-body">
+                    {!isFormOpen ? (
+                        <>
+                            <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>
+                                Configure how salary components are structured and calculated across the organization.
+                            </p>
+                            
+                            <div className="table-wrapper" style={{ border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-md)", maxHeight: "300px", overflowY: "auto" }}>
+                                <table style={{ fontSize: 13 }}>
+                                    <thead style={{ position: "sticky", top: 0, background: "var(--bg-card)", zIndex: 1 }}>
+                                        <tr>
+                                            <th>Component</th>
+                                            <th>Type</th>
+                                            <th>Method</th>
+                                            <th>Value</th>
+                                            <th style={{ textAlign: "right" }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {components.map((comp, i) => (
+                                            <tr key={i}>
+                                                <td style={{ fontWeight: 500, color: "var(--text-primary)" }}>{comp.name}</td>
+                                                <td>
+                                                    <span className={`badge ${comp.type === "Earning" ? "badge-success" : "badge-error"}`} style={{ fontSize: 10 }}>
+                                                        {comp.type}
+                                                    </span>
+                                                </td>
+                                                <td style={{ color: "var(--text-secondary)" }}>{comp.method}</td>
+                                                <td style={{ fontWeight: 600, color: "var(--text-brand)" }}>{comp.value}</td>
+                                                <td style={{ textAlign: "right" }}>
+                                                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 6 }}>
+                                                        <button 
+                                                            className="btn btn-ghost btn-icon btn-sm" 
+                                                            onClick={() => handleOpenEdit(i)}
+                                                            title="Edit"
+                                                        >
+                                                            ✏️
+                                                        </button>
+                                                        <button 
+                                                            className="btn btn-ghost btn-icon btn-sm" 
+                                                            style={{ color: "var(--status-error)" }}
+                                                            onClick={() => { if(confirm(`Remove ${comp.name}?`)) onRemoveComponent(i); }}
+                                                            title="Remove"
+                                                        >
+                                                            🗑️
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
+                    ) : (
+                        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>
+                                {editIndex !== null ? "Edit Component" : "New Component"}
+                            </div>
+                            <div className="form-group">
+                                <label style={{ display: "block", fontSize: 12, color: "var(--text-muted)", marginBottom: 6 }}>Component Name</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="e.g. Travel Allowance"
+                                    value={formData.name}
+                                    onChange={e => setFormData({...formData, name: e.target.value})}
+                                    required
+                                />
+                            </div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                                <div className="form-group">
+                                    <label style={{ display: "block", fontSize: 12, color: "var(--text-muted)", marginBottom: 6 }}>Type</label>
+                                    <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value as any})}>
+                                        <option value="Earning">Earning</option>
+                                        <option value="Deduction">Deduction</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label style={{ display: "block", fontSize: 12, color: "var(--text-muted)", marginBottom: 6 }}>Calculation Method</label>
+                                    <select value={formData.method} onChange={e => setFormData({...formData, method: e.target.value})}>
+                                        <option value="Fixed">Fixed Amount</option>
+                                        <option value="Percentage">Percentage of Basic</option>
+                                        <option value="Variable">Variable/Performance</option>
+                                        <option value="Slab-based">Slab-based</option>
+                                        <option value="Statutory">Statutory</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label style={{ display: "block", fontSize: 12, color: "var(--text-muted)", marginBottom: 6 }}>Calculation Value / Formula</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="e.g. 10% of Basic or ₹5,000"
+                                    value={formData.value}
+                                    onChange={e => setFormData({...formData, value: e.target.value})}
+                                    required
+                                />
+                            </div>
+                            <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+                                    {editIndex !== null ? "Save Changes" : "Add Component"}
+                                </button>
+                                <button type="button" className="btn btn-secondary" onClick={() => setIsFormOpen(false)}>Cancel</button>
+                            </div>
+                        </form>
+                    )}
+                </div>
+                <div className="modal-footer">
+                    {!isFormOpen && (
+                        <>
+                            <button className="btn btn-secondary" onClick={onClose}>Done</button>
+                            <button className="btn btn-primary" onClick={handleOpenAdd}>Add New Component</button>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function PayslipModal({ payrollId, onClose }: { payrollId: string; onClose: () => void }) {
     const { formatCurrency } = useSettings();
     const record = payrollRecords.find(p => p.id === payrollId);
@@ -77,6 +258,16 @@ function PayslipModal({ payrollId, onClose }: { payrollId: string; onClose: () =
 export default function PayrollPage() {
     const { formatCurrency } = useSettings();
     const [selectedPayslip, setSelectedPayslip] = useState<string | null>(null);
+    const [isStructuresModalOpen, setIsStructuresModalOpen] = useState(false);
+    const [components, setComponents] = useState<SalaryComponent[]>([
+        { name: "Basic Salary", type: "Earning", method: "Fixed", value: "60% of CTC" },
+        { name: "HRA", type: "Earning", method: "Percentage", value: "40% of Basic" },
+        { name: "LTA", type: "Earning", method: "Fixed", value: "₹50,000 /yr" },
+        { name: "Performance Bonus", type: "Earning", method: "Variable", value: "Up to 15%" },
+        { name: "Provident Fund", type: "Deduction", method: "Statutory", value: "12% of Basic" },
+        { name: "Professional Tax", type: "Deduction", method: "Fixed", value: "₹200 /mo" },
+        { name: "Income Tax (TDS)", type: "Deduction", method: "Slab-based", value: "As per law" },
+    ]);
     const [filterEmployee, setFilterEmployee] = useState("all");
     const [filterMonth, setFilterMonth] = useState("all");
 
@@ -121,7 +312,7 @@ export default function PayrollPage() {
                     {months.map(m => <option key={m}>{m}</option>)}
                 </select>
                 <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
-                    <button className="btn btn-secondary">Flexible Structures</button>
+                    <button className="btn btn-secondary" onClick={() => setIsStructuresModalOpen(true)}>Flexible Structures</button>
                     <button className="btn btn-primary">Automated Payroll Run</button>
                 </div>
             </div>
@@ -202,6 +393,21 @@ export default function PayrollPage() {
             </div>
 
             {selectedPayslip && <PayslipModal payrollId={selectedPayslip} onClose={() => setSelectedPayslip(null)} />}
+            {isStructuresModalOpen && (
+                <FlexibleStructuresModal 
+                    components={components}
+                    onClose={() => setIsStructuresModalOpen(false)} 
+                    onAddComponent={(c) => setComponents([...components, c])}
+                    onEditComponent={(idx, updated) => {
+                        const next = [...components];
+                        next[idx] = updated;
+                        setComponents(next);
+                    }}
+                    onRemoveComponent={(idx) => {
+                        setComponents(components.filter((_, i) => i !== idx));
+                    }}
+                />
+            )}
         </div>
     );
 }
