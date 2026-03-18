@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNotifications } from "@/contexts/NotificationContext";
-import { useDateRange, DateRange } from "@/contexts/DateContext";
+import { useDateRange, DateRange, generateRecentMonths } from "@/contexts/DateContext";
 interface TopbarProps {
     page: string;
     onAction?: () => void;
@@ -26,6 +26,7 @@ export default function Topbar({ page, onAction, actionLabel }: TopbarProps) {
     const unreadCount = notifications.filter(n => !n.read).length;
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const recentMonths = React.useMemo(() => generateRecentMonths(24), []);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -70,15 +71,9 @@ export default function Topbar({ page, onAction, actionLabel }: TopbarProps) {
                             padding: 0
                         }}
                         value={dateRange}
-                        onChange={(e) => setDateRange(e.target.value as DateRange)}
+                        onChange={(e) => setDateRange(e.target.value)}
                     >
-                        <option>This Month</option>
-                        <option>Last Month</option>
-                        <option>This Quarter</option>
-                        <option>Last Quarter</option>
-                        <option>Last 6 Months</option>
-                        <option>This Year</option>
-                        <option>All Time</option>
+                        {recentMonths.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                     </select>
                 </div>
 

@@ -47,14 +47,14 @@ export default function DashboardPage({ onNavigate }: DashboardProps = {}) {
     const departments = ["All", "Engineering", "Design", "Marketing", "Sales", "HR", "Finance"];
 
     const trendData = useMemo(() => {
-        let baseData = performanceTrend;
+        let baseData = [...performanceTrend];
 
-        // Apply a mock filter based on dateRange selection
-        if (dateRange === "This Month") baseData = performanceTrend.slice(-1);
-        else if (dateRange === "Last Month") baseData = performanceTrend.slice(-2, -1);
-        else if (dateRange === "This Quarter") baseData = performanceTrend.slice(-3);
-        else if (dateRange === "Last Quarter") baseData = performanceTrend.slice(-6, -3);
-        else if (dateRange === "This Year") baseData = performanceTrend; // Assuming mock data is within a year
+        // Pseudo-random mock filter based on "YYYY-MM" dateRange string
+        if (dateRange) {
+            const hash = dateRange.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            const modifier = ((hash % 10) / 100); // 0.0 to 0.09
+            baseData = baseData.map(d => ({ ...d, score: Math.min(100, Math.round(d.score * (1 + modifier))) }));
+        }
         
         if (selectedDept === "All") return baseData;
         const deptScore = departmentPerformance.find(d => d.department === selectedDept)?.score || 86;
@@ -66,35 +66,24 @@ export default function DashboardPage({ onNavigate }: DashboardProps = {}) {
 
     const deptData = useMemo(() => {
         let baseDeptData = departmentPerformance;
-        // Mock filter based on dateRange selection
-        if (dateRange === "This Month") {
-            baseDeptData = departmentPerformance.map(d => ({ ...d, score: d.score - Math.floor(Math.random() * 5) }));
-        }
-        else if (dateRange === "Last Month") {
-            baseDeptData = departmentPerformance.map(d => ({ ...d, score: d.score - Math.floor(Math.random() * 10) }));
-        }
-        else if (dateRange === "This Quarter") {
-            baseDeptData = departmentPerformance.map(d => ({ ...d, score: d.score - Math.floor(Math.random() * 3) }));
-        }
-        else if (dateRange === "Last Quarter") {
-            baseDeptData = departmentPerformance.map(d => ({ ...d, score: d.score - Math.floor(Math.random() * 8) }));
+        if (dateRange) {
+            const hash = dateRange.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            baseDeptData = departmentPerformance.map(d => ({ 
+                ...d, 
+                score: Math.max(0, d.score - (hash % 8)) 
+            }));
         }
         return baseDeptData;
     }, [dateRange]);
 
     const kpiData = useMemo(() => {
         let baseKpis = teamKPIs;
-        if (dateRange === "This Month") {
-            baseKpis = teamKPIs.map(k => ({ ...k, value: Math.max(0, k.value - Math.floor(Math.random() * 15)) }));
-        }
-        else if (dateRange === "Last Month") {
-            baseKpis = teamKPIs.map(k => ({ ...k, value: Math.max(0, k.value - Math.floor(Math.random() * 20)) }));
-        }
-        else if (dateRange === "This Quarter") {
-            baseKpis = teamKPIs.map(k => ({ ...k, value: Math.max(0, k.value - Math.floor(Math.random() * 10)) }));
-        }
-        else if (dateRange === "Last Quarter") {
-            baseKpis = teamKPIs.map(k => ({ ...k, value: Math.max(0, k.value - Math.floor(Math.random() * 18)) }));
+        if (dateRange) {
+            const hash = dateRange.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            baseKpis = teamKPIs.map(k => ({ 
+                ...k, 
+                value: Math.max(0, k.value - (hash % 15)) 
+            }));
         }
         return baseKpis;
     }, [dateRange]);

@@ -1,17 +1,33 @@
 "use client";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useMemo } from "react";
 
-export type DateRange = "This Month" | "Last Month" | "This Quarter" | "Last Quarter" | "Last 6 Months" | "This Year" | "All Time";
+export type DateRange = string;
 
 type DateContextType = {
     dateRange: DateRange;
     setDateRange: (range: DateRange) => void;
 };
 
+export function generateRecentMonths(count = 12) {
+    const list = [];
+    const date = new Date();
+    for (let i = 0; i < count; i++) {
+        const year = date.getFullYear();
+        const monthNum = date.getMonth() + 1;
+        const mm = monthNum < 10 ? `0${monthNum}` : `${monthNum}`;
+        const monthName = date.toLocaleString('default', { month: 'long' });
+        list.push({ value: `${year}-${mm}`, label: `${monthName} ${year}` });
+        date.setMonth(date.getMonth() - 1);
+    }
+    return list;
+}
+
 const DateContext = createContext<DateContextType | undefined>(undefined);
 
 export function DateProvider({ children }: { children: React.ReactNode }) {
-    const [dateRange, setDateRange] = useState<DateRange>("Last 6 Months");
+    const defaultMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+    const [dateRange, setDateRange] = useState<DateRange>(defaultMonth);
+    const recentMonths = useMemo(() => generateRecentMonths(24), []); // Last 24 months
 
     return (
         <DateContext.Provider value={{ dateRange, setDateRange }}>
