@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { performanceTrend, departmentPerformance, teamKPIs } from "@/lib/data";
 import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
@@ -22,6 +22,35 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function ChartPage() {
     const [selectedMetric, setSelectedMetric] = useState("Performance");
+    const [insights, setInsights] = useState<string>("");
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const generateInsights = () => {
+        setIsGenerating(true);
+        // Simulate AI thinking time
+        setTimeout(() => {
+            const latestMonth = performanceTrend[performanceTrend.length - 1];
+            const previousMonth = performanceTrend[performanceTrend.length - 2];
+            const trend = latestMonth.score >= previousMonth.score ? "an upward" : "a downward";
+            
+            const topDept = [...departmentPerformance].sort((a, b) => b.score - a.score)[0];
+            const lowDept = [...departmentPerformance].sort((a, b) => a.score - b.score)[0];
+
+            const insightsList = [
+                `We're seeing ${trend} trend in overall performance, with a current company average of ${latestMonth.score}%.`,
+                `${topDept.department} is currently leading the organization with a score of ${topDept.score}%.`,
+                `There are significant opportunities for growth identified in the ${lowDept.department} department.`,
+                `Overall KPI achievement has shifted by ${Math.abs(Math.round((latestMonth.score / previousMonth.score - 1) * 100))}% compared to the previous period.`
+            ];
+            
+            setInsights(insightsList.join(" "));
+            setIsGenerating(false);
+        }, 1200);
+    };
+
+    useEffect(() => {
+        generateInsights();
+    }, []);
 
     // Enhance performanceTrend to have multiple data points just for visual interest on a dedicated chart page
     const enhancedTrendData = useMemo(() => {
@@ -137,15 +166,78 @@ export default function ChartPage() {
             </div>
 
             {/* Quick Insights Footer */}
-            <div style={{ marginTop: 24, padding: "16px 20px", background: "rgba(99, 102, 241, 0.05)", border: "1px solid var(--border-brand)", borderRadius: "var(--radius-lg)", display: "flex", gap: 16, alignItems: "flex-start" }}>
-                <div style={{ fontSize: 20 }}>💡</div>
-                <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>AI Insights</div>
-                    <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                        Engineering is consistently outperforming the company average by 5%. However, goal completion across the board is currently only 3% above target. Consider revising next quarter's OKRs to be more ambitious.
+            <div style={{ marginTop: 24, padding: "20px", background: "rgba(99, 102, 241, 0.05)", border: "1px solid var(--border-brand)", borderRadius: "var(--radius-lg)", display: "flex", gap: 16, alignItems: "center", position: 'relative', overflow: 'hidden' }}>
+                <div 
+                    style={{ 
+                        fontSize: 24, 
+                        animation: isGenerating ? "pulse 1.5s infinite ease-in-out" : "none",
+                        filter: isGenerating ? "drop-shadow(0 0 8px var(--brand-primary))" : "none"
+                    }}
+                >
+                    {isGenerating ? "✨" : "💡"}
+                </div>
+                <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", letterSpacing: '0.02em', textTransform: 'uppercase' }}>AI Performance Insights</div>
+                        <button 
+                            disabled={isGenerating}
+                            onClick={generateInsights}
+                            style={{ 
+                                background: 'none', 
+                                border: 'none', 
+                                color: 'var(--brand-primary)', 
+                                cursor: 'pointer', 
+                                fontSize: 12, 
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                opacity: isGenerating ? 0.5 : 1,
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            <span style={{ fontSize: 16 }}>{isGenerating ? "⏳" : "🔄"}</span>
+                            {isGenerating ? "Analyzing..." : "Refresh Insights"}
+                        </button>
+                    </div>
+                    <div style={{ 
+                        fontSize: 13, 
+                        color: "var(--text-secondary)", 
+                        lineHeight: 1.6,
+                        minHeight: "40px",
+                        transition: 'opacity 0.3s ease',
+                        opacity: isGenerating ? 0.6 : 1
+                    }}>
+                        {isGenerating ? "Processing monthly performance data and cross-departmental metrics to generate strategic recommendations..." : insights}
                     </div>
                 </div>
+
+                {/* Loading bar overlay */}
+                {isGenerating && (
+                    <div style={{ 
+                        position: 'absolute', 
+                        bottom: 0, 
+                        left: 0, 
+                        height: 2, 
+                        background: 'linear-gradient(90deg, transparent, var(--brand-primary), transparent)', 
+                        width: '100%',
+                        animation: 'loading-slide 1.5s infinite linear'
+                    }} />
+                )}
             </div>
+
+            <style>{`
+                @keyframes pulse {
+                    0% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.2); opacity: 0.7; }
+                    100% { transform: scale(1); opacity: 1; }
+                }
+                @keyframes loading-slide {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                }
+            `}</style>
         </div>
     );
 }
+
